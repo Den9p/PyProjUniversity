@@ -1,15 +1,20 @@
 import psycopg2
+from dotenv import load_dotenv
+import os
 from faker import Faker
 import random
 from datetime import timedelta
 
-# Подключение к базе данных
+# Загружаем переменные окружения из .env файла
+load_dotenv()
+
+# Подключение к базе данных с использованием переменных окружения
 connection = psycopg2.connect(
-    dbname="your_database_name",
-    user="your_username",
-    password="your_password",
-    host="localhost",
-    port="5432"
+    dbname=os.getenv('DB_NAME'),
+    user=os.getenv('DB_USER'),
+    password=os.getenv('DB_PASSWORD'),
+    host=os.getenv('DB_HOST'),
+    port=os.getenv('DB_PORT')
 )
 cursor = connection.cursor()
 
