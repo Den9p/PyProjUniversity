@@ -1,0 +1,93 @@
+1) Информация о пассажире и рейсе по паспорту:
+SELECT client.client_passport_id, client_name, client_surname, client_patronymic,
+       flight.flight_name, flight_departure, flight_arrival, timestamp_departure, timestamp_arrival, ticket_price,
+       airplane_id, airplane_type, airplane_speed, airplane_hight
+FROM client_flight
+INNER JOIN client ON client_flight.client_passport_id = client.client_passport_id
+INNER JOIN flight ON flight.flight_name = client_flight.flight_name
+INNER JOIN airplane ON flight.fk_airplane_id = airplane.airplane_id
+WHERE client_flight.client_passport_id = '7112356820';
+
+
+2) Количество пассажиров на рейсе:
+SELECT COUNT(client_passport_id)
+FROM client_flight
+WHERE flight_name = 'DB9576';  
+
+3) Количество рейсов для определенного самолета:
+SELECT COUNT(fk_airplane_id)
+FROM flight
+WHERE fk_airplane_id = 'AAAAA'; 
+
+4) Все рейсы, вылетающие из города:
+SELECT flight_name
+FROM flight
+WHERE flight_departure = 'Moskow';  
+
+
+5) Все рейсы, прилетающие в город:
+SELECT flight_name
+FROM flight
+WHERE flight_arrival = 'Moskow';  
+
+
+6) Все рейсы на определенную дату:
+SELECT *
+FROM flight
+WHERE DATE(timestamp_departure) = '2022-12-28'; 
+
+
+7) Все самолеты с определенной скоростью:
+SELECT airplane_id, airplane_type, airplane_speed
+FROM airplane
+WHERE airplane_speed > 850; 
+
+
+8) Все самолеты с определенной вместимостью:
+SELECT airplane_id, airplane_type, airplane_capacity
+FROM airplane
+WHERE airplane_capacity > 190;  -
+
+
+9) Все самолеты с заданным типом:
+SELECT airplane_id, airplane_type
+FROM airplane
+WHERE airplane_type = 'Airbus A320';  
+
+
+
+10) Все самолеты с заданной высотой:
+SELECT airplane_id, airplane_type, airplane_hight
+FROM airplane
+WHERE airplane_hight > 10000;  
+
+
+
+11) Все рейсы с указанной ценой билета:
+SELECT flight_name
+FROM flight
+WHERE ticket_price = 2500;  
+
+
+12) Общая стоимость билетов пассажира:
+SELECT SUM(ticket_price)
+FROM client_flight
+INNER JOIN flight ON flight.flight_name = client_flight.flight_name
+WHERE client_flight.client_passport_id = '7112356820';  
+
+
+
+13) Запрос для определения минимальной цены на рейс с пересадками:
+WITH RECURSIVE flight_routes AS (
+    SELECT flight_name, flight_departure, flight_arrival, ticket_price
+    FROM flight
+    WHERE flight_departure = 'TyumenT' AND DATE(timestamp_departure) = '2022-12-28'
+    UNION ALL
+    SELECT f.flight_name, f.flight_departure, f.flight_arrival, fr.ticket_price + f.ticket_price
+    FROM flight_routes fr
+    INNER JOIN flight f ON f.flight_departure = fr.flight_arrival
+    WHERE f.flight_arrival = 'NoyabrskT'
+)
+SELECT MIN(ticket_price) AS min_price
+FROM flight_routes;
+
