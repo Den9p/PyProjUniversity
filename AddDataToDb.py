@@ -124,6 +124,16 @@ for _ in range(100):
     flight_name = random.choice(flight_names)
     ticket_number = fake.unique.bothify(text="##########??")
 
+    # Проверка уникальности перед вставкой
+    cursor.execute(
+        """
+        SELECT 1 FROM client_flight WHERE client_passport_id = %s AND flight_name = %s
+        """,
+        (client_passport_id, flight_name)
+    )
+    if cursor.fetchone():
+        continue  # Если запись существует, пропустить её
+
     cursor.execute(
         """
         INSERT INTO client_flight (client_passport_id, flight_name, ticket_number)
@@ -131,6 +141,7 @@ for _ in range(100):
         """,
         (client_passport_id, flight_name, ticket_number)
     )
+
 
 # Сохранение изменений и закрытие соединения
 connection.commit()
