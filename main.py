@@ -32,7 +32,7 @@ class Client(db.Model):
     password_hash = db.Column(db.String, nullable=False)
     salt = db.Column(db.String, nullable=False)
 
-class Flight(db.Model):
+class Flight(db.Model):  # Убедитесь, что этот класс объявлен и импортирован
     __tablename__ = 'flight'
     flight_name = db.Column(db.String, primary_key=True)
     flight_departure = db.Column(db.String, nullable=False)
@@ -40,7 +40,7 @@ class Flight(db.Model):
     timestamp_departure = db.Column(db.DateTime, nullable=False)
     timestamp_arrival = db.Column(db.DateTime, nullable=False)
     ticket_price = db.Column(db.Integer, nullable=False)
-    fk_airplane_id = db.Column(db.String, db.ForeignKey('airplane.airplane_id'), nullable=False)
+    fk_airplane_id = db.Column(db.String, db.ForeignKey('airplane.airplane_id', ondelete='CASCADE'), nullable=False)
 
 class ClientFlight(db.Model):
     __tablename__ = 'client_flight'
@@ -48,19 +48,21 @@ class ClientFlight(db.Model):
     flight_name = db.Column(db.String, db.ForeignKey('flight.flight_name'), primary_key=True, nullable=False)
     ticket_number = db.Column(db.String, unique=True, nullable=False)
 
-# Интерфейс для работы с таблицей Airplane
-@app.route('/')
-def index():
-    airplanes = Airplane.query.all()
-    clients = Client.query.all()
-    flights = Flight.query.all()
-    client_flights = ClientFlight.query.all()
-    return render_template('index.html', airplanes=airplanes, clients=clients, flights=flights, client_flights=client_flights)
-
 # CRUD операции для Airplane
+@app.route('/airplanes', methods=['GET'])
+def get_airplanes():
+    airplanes = Airplane.query.all()
+    return jsonify([{
+        'airplane_id': a.airplane_id,
+        'airplane_type': a.airplane_type,
+        'airplane_speed': a.airplane_speed,
+        'airplane_hight': a.airplane_hight,
+        'airplane_capacity': a.airplane_capacity
+    } for a in airplanes])
+
 @app.route('/airplanes', methods=['POST'])
 def create_airplane():
-    data = request.form
+    data = request.json
     new_airplane = Airplane(
         airplane_id=data['airplane_id'],
         airplane_type=data['airplane_type'],
@@ -70,124 +72,64 @@ def create_airplane():
     )
     db.session.add(new_airplane)
     db.session.commit()
-    return index()
+    return jsonify({'message': 'Airplane created successfully'}), 201
 
-@app.route('/airplanes/<airplane_id>/update', methods=['POST'])
+@app.route('/airplanes/<airplane_id>', methods=['GET'])
+def get_airplane(airplane_id):
+    airplane = Airplane.query.get(airplane_id)
+    if not airplane:
+        return jsonify({'message': 'Airplane not found'}), 404
+    return jsonify({
+        'airplane_id': airplane.airplane_id,
+        'airplane_type': airplane.airplane_type,
+        'airplane_speed': airplane.airplane_speed,
+        'airplane_hight': airplane.airplane_hight,
+        'airplane_capacity': airplane.airplane_capacity
+    })
+
+@app.route('/airplanes/<airplane_id>', methods=['PUT'])
 def update_airplane(airplane_id):
-    data = request.form
+    data = request.json
     airplane = Airplane.query.get(airplane_id)
-    if airplane:
-        airplane.airplane_type = data['airplane_type']
-        airplane.airplane_speed = data['airplane_speed']
-        airplane.airplane_hight = data['airplane_hight']
-        airplane.airplane_capacity = data['airplane_capacity']
-        db.session.commit()
-    return index()
+    if not airplane:
+        return jsonify({'message': 'Airplane not found'}), 404
 
-@app.route('/airplanes/<airplane_id>/delete', methods=['POST'])
+    airplane.airplane_type = data['airplane_type']
+    airplane.airplane_speed = data['airplane_speed']
+    airplane.airplane_hight = data['airplane_hight']
+    airplane.airplane_capacity = data['airplane_capacity']
+    db.session.commit()
+    return jsonify({'message': 'Airplane updated successfully'})
+
+
+@app.route('/airplanes/<airplane_id>', methods=['DELETE'])
 def delete_airplane(airplane_id):
-    airplane = Airplane.query.get(airplane_id)
-    if airplane:
-        db.session.delete(airplane)
-        db.session.commit()
-    return index()
+    # Сначала удаляем все записи в client_flight, связанные с рейсами, использующими этот самолет
+    flights_to_delete = Flight.query.filter_by(fk_airplane_id=airplane_id).all()
+    for flight in flights_to_delete:
+        # Удаляем все записи из client_flight, которые ссылаются на этот рейс
+        client_flights_to_delete = ClientFlight.query.filter_by(flight_name=flight.flight_name).all()
+        for client_flight in client_flights_to_delete:
+            db.session.delete(client_flight)
 
-# CRUD операции для Client
-@app.route('/clients', methods=['POST'])
-def create_client():
-    data = request.form
-    new_client = Client(
-        client_passport_id=data['client_passport_id'],
-        client_name=data['client_name'],
-        client_surname=data['client_surname'],
-        client_patronymic=data['client_patronymic'],
-        password_hash=data['password_hash'],
-        salt=data['salt']
-    )
-    db.session.add(new_client)
-    db.session.commit()
-    return index()
-
-@app.route('/clients/<client_passport_id>/update', methods=['POST'])
-def update_client(client_passport_id):
-    data = request.form
-    client = Client.query.get(client_passport_id)
-    if client:
-        client.client_name = data['client_name']
-        client.client_surname = data['client_surname']
-        client.client_patronymic = data['client_patronymic']
-        client.password_hash = data['password_hash']
-        client.salt = data['salt']
-        db.session.commit()
-    return index()
-
-@app.route('/clients/<client_passport_id>/delete', methods=['POST'])
-def delete_client(client_passport_id):
-    client = Client.query.get(client_passport_id)
-    if client:
-        db.session.delete(client)
-        db.session.commit()
-    return index()
-
-# CRUD операции для Flight
-@app.route('/flights', methods=['POST'])
-def create_flight():
-    data = request.form
-    new_flight = Flight(
-        flight_name=data['flight_name'],
-        flight_departure=data['flight_departure'],
-        flight_arrival=data['flight_arrival'],
-        timestamp_departure=data['timestamp_departure'],
-        timestamp_arrival=data['timestamp_arrival'],
-        ticket_price=data['ticket_price'],
-        fk_airplane_id=data['fk_airplane_id']
-    )
-    db.session.add(new_flight)
-    db.session.commit()
-    return index()
-
-@app.route('/flights/<flight_name>/update', methods=['POST'])
-def update_flight(flight_name):
-    data = request.form
-    flight = Flight.query.get(flight_name)
-    if flight:
-        flight.flight_departure = data['flight_departure']
-        flight.flight_arrival = data['flight_arrival']
-        flight.timestamp_departure = data['timestamp_departure']
-        flight.timestamp_arrival = data['timestamp_arrival']
-        flight.ticket_price = data['ticket_price']
-        flight.fk_airplane_id = data['fk_airplane_id']
-        db.session.commit()
-    return index()
-
-@app.route('/flights/<flight_name>/delete', methods=['POST'])
-def delete_flight(flight_name):
-    flight = Flight.query.get(flight_name)
-    if flight:
+        # После этого удаляем сам рейс
         db.session.delete(flight)
-        db.session.commit()
-    return index()
 
-# CRUD операции для ClientFlight
-@app.route('/client_flights', methods=['POST'])
-def create_client_flight():
-    data = request.form
-    new_client_flight = ClientFlight(
-        client_passport_id=data['client_passport_id'],
-        flight_name=data['flight_name'],
-        ticket_number=data['ticket_number']
-    )
-    db.session.add(new_client_flight)
+    # Теперь можно удалить сам самолет
+    airplane = Airplane.query.get(airplane_id)
+    if not airplane:
+        return jsonify({'message': 'Airplane not found'}), 404
+
+    db.session.delete(airplane)
     db.session.commit()
-    return index()
 
-@app.route('/client_flights/<int:id>/delete', methods=['POST'])
-def delete_client_flight(id):
-    client_flight = ClientFlight.query.get(id)
-    if client_flight:
-        db.session.delete(client_flight)
-        db.session.commit()
-    return index()
+    return jsonify({'message': 'Airplane and all related flights and client_flight records deleted successfully'})
+
+
+# Рендеринг главной страницы
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 # Запуск приложения
 if __name__ == "__main__":
