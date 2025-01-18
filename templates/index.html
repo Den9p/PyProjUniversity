@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplane Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fc;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #444;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Management System</h1>
+
+    <!-- Create New Airplane Form -->
+    <div class="form-container">
+        <h2>Create New Airplane</h2>
+        <form action="/airplanes" method="POST">
+            <label for="airplane_id">Airplane ID:</label>
+            <input type="text" id="airplane_id" name="airplane_id" required>
+
+            <label for="airplane_type">Airplane Type:</label>
+            <input type="text" id="airplane_type" name="airplane_type" required>
+
+            <label for="airplane_speed">Speed:</label>
+            <input type="number" id="airplane_speed" name="airplane_speed" required>
+
+            <label for="airplane_hight">Height:</label>
+            <input type="number" id="airplane_hight" name="airplane_hight" required>
+
+            <label for="airplane_capacity">Capacity:</label>
+            <input type="number" id="airplane_capacity" name="airplane_capacity" required>
+
+            <button type="submit">Create Airplane</button>
+        </form>
+    </div>
+
+    <!-- Airplane Table -->
+    <div class="table-container">
+        <h2>Airplanes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Airplane ID</th>
+                    <th>Airplane Type</th>
+                    <th>Speed</th>
+                    <th>Height</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for airplane in airplanes %}
+                    <tr>
+                        <td>{{ airplane.airplane_id }}</td>
+                        <td>{{ airplane.airplane_type }}</td>
+                        <td>{{ airplane.airplane_speed }}</td>
+                        <td>{{ airplane.airplane_hight }}</td>
+                        <td>{{ airplane.airplane_capacity }}</td>
+                        <td>
+                            <a href="/airplanes/{{ airplane.airplane_id }}/edit">Edit</a> |
+                            <a href="/airplanes/{{ airplane.airplane_id }}/delete">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create New Client Form -->
+    <div class="form-container">
+        <h2>Create New Client</h2>
+        <form action="/clients" method="POST">
+            <label for="client_passport_id">Passport ID:</label>
+            <input type="text" id="client_passport_id" name="client_passport_id" required>
+
+            <label for="client_name">Name:</label>
+            <input type="text" id="client_name" name="client_name" required>
+
+            <label for="client_surname">Surname:</label>
+            <input type="text" id="client_surname" name="client_surname" required>
+
+            <label for="client_patronymic">Patronymic:</label>
+            <input type="text" id="client_patronymic" name="client_patronymic">
+
+            <label for="password_hash">Password Hash:</label>
+            <input type="text" id="password_hash" name="password_hash" required>
+
+            <label for="salt">Salt:</label>
+            <input type="text" id="salt" name="salt" required>
+
+            <button type="submit">Create Client</button>
+        </form>
+    </div>
+
+    <!-- Client Table -->
+    <div class="table-container">
+        <h2>Clients</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Passport ID</th>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Patronymic</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                    <tr>
+                        <td>{{ client.client_passport_id }}</td>
+                        <td>{{ client.client_name }}</td>
+                        <td>{{ client.client_surname }}</td>
+                        <td>{{ client.client_patronymic }}</td>
+                        <td>
+                            <a href="/clients/{{ client.client_passport_id }}/edit">Edit</a> |
+                            <a href="/clients/{{ client.client_passport_id }}/delete">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create New Flight Form -->
+    <div class="form-container">
+        <h2>Create New Flight</h2>
+        <form action="/flights" method="POST">
+            <label for="flight_name">Flight Name:</label>
+            <input type="text" id="flight_name" name="flight_name" required>
+
+            <label for="flight_departure">Departure:</label>
+            <input type="text" id="flight_departure" name="flight_departure" required>
+
+            <label for="flight_arrival">Arrival:</label>
+            <input type="text" id="flight_arrival" name="flight_arrival" required>
+
+            <label for="timestamp_departure">Departure Time:</label>
+            <input type="datetime-local" id="timestamp_departure" name="timestamp_departure" required>
+
+            <label for="timestamp_arrival">Arrival Time:</label>
+            <input type="datetime-local" id="timestamp_arrival" name="timestamp_arrival" required>
+
+            <label for="ticket_price">Ticket Price:</label>
+            <input type="number" id="ticket_price" name="ticket_price" required>
+
+            <label for="fk_airplane_id">Airplane ID:</label>
+            <select id="fk_airplane_id" name="fk_airplane_id" required>
+                {% for airplane in airplanes %}
+                    <option value="{{ airplane.airplane_id }}">{{ airplane.airplane_id }} - {{ airplane.airplane_type }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Create Flight</button>
+        </form>
+    </div>
+
+    <!-- Flight Table -->
+    <div class="table-container">
+        <h2>Flights</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Flight Name</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for flight in flights %}
+                    <tr>
+                        <td>{{ flight.flight_name }}</td>
+                        <td>{{ flight.flight_departure }}</td>
+                        <td>{{ flight.flight_arrival }}</td>
+                        <td>{{ flight.ticket_price }}</td>
+                        <td>
+                            <a href="/flights/{{ flight.flight_name }}/edit">Edit</a> |
+                            <a href="/flights/{{ flight.flight_name }}/delete">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Client Flight Table -->
+    <div class="table-container">
+        <h2>Client Flights</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Passport ID</th>
+                    <th>Flight Name</th>
+                    <th>Ticket Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client_flight in client_flights %}
+                    <tr>
+                        <td>{{ client_flight.client_passport_id }}</td>
+                        <td>{{ client_flight.flight_name }}</td>
+                        <td>{{ client_flight.ticket_number }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
