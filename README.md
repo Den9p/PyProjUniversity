@@ -1,4 +1,4 @@
 # PyProjUniversity
 
-Для работоспособности необходимо отредактировать файл main.py, добавив туда данные для подключения к БД: \n
+Для работоспособности необходимо отредактировать файл main.py, добавив туда данные для подключения к БД:  
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@localhost:5432/nameDataBase'
